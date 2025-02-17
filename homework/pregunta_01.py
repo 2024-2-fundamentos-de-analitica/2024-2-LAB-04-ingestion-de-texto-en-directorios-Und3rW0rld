@@ -5,6 +5,10 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
+import os
+import zipfile
+import glob
+import pandas as pd
 
 def pregunta_01():
     """
@@ -71,3 +75,44 @@ def pregunta_01():
 
 
     """
+
+
+
+
+
+
+    def decompress_zip(path_zip, extract_to):
+        with zipfile.ZipFile(path_zip, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+
+    def make_output_dir(output_path):
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+    def create_dataset(input_folder, output_file):
+        dataset = []
+        sentiments = ['negative', 'neutral', 'positive'] 
+
+        for sentiment in sentiments:
+            sentiment_folder = os.path.join(input_folder, sentiment)
+            for file_path in glob.glob(os.path.join(sentiment_folder, '*')):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    text = file.read().strip()
+                    dataset.append([text, sentiment])
+
+        df = pd.DataFrame(dataset, columns=['phrase', 'target'])
+        df.to_csv(output_file, index=False)
+
+        return df
+
+    input_zip = 'files/input.zip'
+    extract_to = 'files'
+    decompress_zip(input_zip, extract_to)
+
+    output_dir = 'files/output'
+    make_output_dir(output_dir)
+
+    train_df = create_dataset(os.path.join(extract_to, 'input/train'), os.path.join(output_dir, 'train_dataset.csv'))
+    test_df = create_dataset(os.path.join(extract_to, 'input/test'), os.path.join(output_dir, 'test_dataset.csv'))
+
+    train_df, test_df
